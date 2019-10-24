@@ -31,6 +31,7 @@ dependencies:
   location: ^2.3.5
   geocoder: ^0.2.1
   permission_handler: ^3.3.0
+  flutter_appavailability: ^0.0.21
 
 dev_dependencies:
   flutter_test:

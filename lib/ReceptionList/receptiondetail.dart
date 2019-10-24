@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:geocoder/geocoder.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 import 'package:onecallapp/Map/maplocation.dart';
 import 'package:onecallapp/Model/receptionListData.dart';
 import 'package:onecallapp/Utils/color.dart';
 import 'package:onecallapp/Utils/numberFormat.dart';
 import 'package:onecallapp/Utils/whiteSpace.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ReceptionDetail extends StatefulWidget {
   ReceptionListData receptionListData;
@@ -43,26 +48,87 @@ class _ReceptionDetail extends State<ReceptionDetail> {
     return pass;
   }
 
+  var location = Location();
+  String url;
+  bool loading = false;
+
+  Future<LatLng> getLocation() async {
+    LatLng latLng;
+
+    await location.getLocation().then((value) {
+      latLng = LatLng(value.latitude, value.longitude);
+    });
+
+    return latLng;
+  }
+
+  getLocationNavi(loadAddress) async {
+    setState(() {
+      loading = true;
+    });
+    try {
+      await location.getLocation().then((value) async {
+        var address = await Geocoder.local.findAddressesFromQuery(loadAddress).catchError((error) {
+          print("geoError : " + error.toString());
+          setState(() {
+            loading = false;
+          });
+        });
+        setState(() {
+          url =
+              "daummaps://route?sp=${value.latitude},${value.longitude}&ep=${address.first.coordinates.latitude},${address.first.coordinates.longitude}&by=CAR";
+          loading = false;
+        });
+        print(url);
+        if (await canLaunch(url)) {
+          await launch(url);
+        } else {
+          print("Could not launch url");
+        }
+      });
+    } on PlatformException catch (e) {
+      if (e.code == "PERMISSION_DENIED") {
+        print(e.code);
+      }
+    }
+  }
+
   // type = 0 (기사위치 -> 상점위치), type = 1 (기사위치 -> 도착위치), type = 2 (웹뷰 다음맵 길찾기 연결), type = 3 (현재 기사위치 -> 상점위치, 고객위치)
-  mapViewMove(type, mainLoadAddress, loadAddress, List<String> loadAddressList) {
+  mapViewMove(
+      type, mainLoadAddress, loadAddress, List<String> loadAddressList) async {
     permissionCheck().then((pass) {
       if (pass == true) {
         if (type == 0) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => MapLocation(
-            mainLoadAddress: mainLoadAddress,
-          )));
+          print("check 0");
+          getLocation().then((value) {
+            print("check 1");
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => MapLocation(
+                  type: 0,
+                  mainLoadAddress: mainLoadAddress,
+                  latLng: value,
+                )));
+          });
         } else if (type == 1) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => MapLocation(
-            loadAddress: loadAddress,
-          )));
+          getLocation().then((value) {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => MapLocation(
+                  type: 1,
+                  loadAddress: loadAddress,
+                  latLng: value,
+                )));
+          });
         } else if (type == 2) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => MapLocation(
-            loadAddress: loadAddress,
-          )));
+//          Navigator.of(context).push(MaterialPageRoute(builder: (context) => MapLocation(
+//            loadAddress: loadAddress,
+//          )));
+          getLocationNavi(loadAddress);
         } else if (type == 3) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => MapLocation(
-            loadAddressList: loadAddressList,
-          )));
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => MapLocation(
+                type: 3,
+                    loadAddressList: loadAddressList,
+                  )));
         }
       } else {
         print("error");
@@ -76,7 +142,9 @@ class _ReceptionDetail extends State<ReceptionDetail> {
       child: GestureDetector(
         onTap: () {
           if (type == 0) {
+            mapViewMove(0, mainLoadAddress, "", null);
           } else if (type == 1) {
+            mapViewMove(1, "", loadAddress, null);
           } else if (type == 2) {
             mapViewMove(2, "", loadAddress, null);
           }
@@ -128,7 +196,9 @@ class _ReceptionDetail extends State<ReceptionDetail> {
                   ? Padding(
                       padding: EdgeInsets.only(right: 5),
                       child: GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          mapViewMove(0, data.mainLoadAddress, "", null);
+                        },
                         child: Container(
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(5),
@@ -420,7 +490,9 @@ class _ReceptionDetail extends State<ReceptionDetail> {
                   ? Padding(
                       padding: EdgeInsets.only(right: 5),
                       child: GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          mapViewMove(1, "", data.loadAddress[idx], null);
+                        },
                         child: Container(
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(5),
@@ -811,15 +883,26 @@ class _ReceptionDetail extends State<ReceptionDetail> {
                         alignment: Alignment.bottomCenter,
                         child: Row(
                           children: <Widget>[
-                            locationButton(0, receptionListData.mainLoadAddress, ""),
+                            locationButton(
+                                0, receptionListData.mainLoadAddress, ""),
                             whiteSpaceW(15),
-                            locationButton(1, "", receptionListData.loadAddress),
+                            locationButton(
+                                1, "", receptionListData.loadAddress),
                             whiteSpaceW(15),
                             locationButton(2, "", receptionListData.loadAddress)
                           ],
                         ),
                       ))
-                  : Container()
+                  : Container(),
+              loading == true ? Positioned.fill(
+                  child:Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  color: Color.fromRGBO(0, 0, 0, 0.5),
+                  child:  Center(
+                    child: CircularProgressIndicator(),
+                  )
+                )) : Container()
             ],
           ),
         ),
