@@ -14,20 +14,23 @@ class ReceptionListData {
   dynamic deliveryAmount; // 배달 대행 금액 (개별일시 Int, 묶음일시 List)
   dynamic paymentType; // 0 = 카드,  1 = 완불, 2 = 현금, 3 = 이체 (개별일시 Int, 묶음일시 List)
   int deliveryType; // 0 = 개별, 1 = 묶음
+  dynamic check; // 0 = 결제 필요, 1 = 결제 완료
 
-  ReceptionListData({this.receptionTime,
-    this.assignmentTime,
-    this.businessName,
-    this.numberAddress,
-    this.loadAddress,
-    this.mainTel,
-    this.mainPhone,
-    this.mainNumberAddress,
-    this.mainLoadAddress,
-    this.customerPhone,
-    this.paymentAmountAll,
-    this.paymentAmount,
-    this.deliveryAmount,
-    this.paymentType,
-    this.deliveryType});
+  ReceptionListData(
+      {this.receptionTime,
+      this.assignmentTime,
+      this.businessName,
+      this.numberAddress,
+      this.loadAddress,
+      this.mainTel,
+      this.mainPhone,
+      this.mainNumberAddress,
+      this.mainLoadAddress,
+      this.customerPhone,
+      this.paymentAmountAll,
+      this.paymentAmount,
+      this.deliveryAmount,
+      this.paymentType,
+      this.deliveryType,
+      this.check});
 }

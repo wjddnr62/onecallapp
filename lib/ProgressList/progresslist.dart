@@ -2,18 +2,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:onecallapp/Model/receptionListData.dart';
+import 'package:onecallapp/ProgressList/progressdetail.dart';
 import 'package:onecallapp/ReceptionList/receptiondetail.dart';
 import 'package:onecallapp/Utils/color.dart';
-import 'package:onecallapp/Utils/dataRoutes.dart';
 import 'package:onecallapp/Utils/numberFormat.dart';
 import 'package:onecallapp/Utils/whiteSpace.dart';
 
-class ReceptionList extends StatefulWidget {
+class ProgressList extends StatefulWidget {
   @override
-  _ReceptionList createState() => _ReceptionList();
+  _ProgressList createState() => _ProgressList();
 }
 
-class _ReceptionList extends State<ReceptionList> {
+class _ProgressList extends State<ProgressList> {
   List<ReceptionListData> _receptionData = List();
 
   List<String> testNumberAddress = List();
@@ -24,8 +24,6 @@ class _ReceptionList extends State<ReceptionList> {
   List<int> testPaymentType = List();
   int testAllPaymentAmount = 0;
   int testAllDeliveryAmount = 0;
-
-  DataRoutes _dataRoutes = DataRoutes();
 
   @override
   void initState() {
@@ -155,7 +153,7 @@ class _ReceptionList extends State<ReceptionList> {
           businessName: "(공유주방) 국민닭발",
           customerPhone: "010-1234-5678",
           numberAddress: "신흥동 2572",
-          loadAddress: "가산디지털 1로 79",
+          loadAddress: "산성대로269번길 10",
           mainTel: "031-123-4567",
           mainPhone: "010-1234-5678",
           mainNumberAddress: "신흥동 2572",
@@ -165,8 +163,6 @@ class _ReceptionList extends State<ReceptionList> {
           deliveryType: 0,
           deliveryAmount: 3300,
           paymentType: 0));
-
-    _dataRoutes.saveData = _receptionData;
   }
 
   @override
@@ -177,7 +173,7 @@ class _ReceptionList extends State<ReceptionList> {
         return GestureDetector(
           onTap: () {
             Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => ReceptionDetail(
+              builder: (context) => ProgressDetail(
                 receptionListData: _receptionData[idx],
               )
             ));
@@ -212,7 +208,7 @@ class _ReceptionList extends State<ReceptionList> {
                         Container(
                           height: 40,
                           color: _receptionData[idx].deliveryType == 0
-                              ? greyB
+                              ? Colors.redAccent
                               : Colors.blueAccent,
                           child: Center(
                             child: Text(
@@ -237,7 +233,7 @@ class _ReceptionList extends State<ReceptionList> {
                     child: Container(
                       height: 80,
                       color: _receptionData[idx].deliveryType == 0
-                          ? black
+                          ? Colors.redAccent
                           : Colors.blueAccent,
                       child: Padding(
                         padding: EdgeInsets.only(left: 5),
@@ -304,7 +300,7 @@ class _ReceptionList extends State<ReceptionList> {
                     child: Container(
                       height: 80,
                       color: _receptionData[idx].deliveryType == 0
-                          ? black
+                          ? Colors.redAccent
                           : Colors.blueAccent,
                       child: Padding(
                         padding: EdgeInsets.only(
@@ -353,7 +349,7 @@ class _ReceptionList extends State<ReceptionList> {
               Container(
                 width: MediaQuery.of(context).size.width,
                 height: 30,
-                color: greyB,
+                color: _receptionData[idx].deliveryType == 0 ? Colors.redAccent : greyB,
                 child: Stack(
                   children: <Widget>[
                     _receptionData[idx].deliveryType == 0
@@ -388,7 +384,7 @@ class _ReceptionList extends State<ReceptionList> {
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
-                                color: Colors.redAccent),
+                                color: _receptionData[idx].deliveryType == 0 ? white : Colors.redAccent),
                           ),
                         ))
                   ],

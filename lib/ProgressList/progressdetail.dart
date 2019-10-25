@@ -11,16 +11,16 @@ import 'package:onecallapp/Utils/whiteSpace.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ReceptionDetail extends StatefulWidget {
+class ProgressDetail extends StatefulWidget {
   ReceptionListData receptionListData;
 
-  ReceptionDetail({Key key, this.receptionListData}) : super(key: key);
+  ProgressDetail({Key key, this.receptionListData}) : super(key: key);
 
   @override
-  _ReceptionDetail createState() => _ReceptionDetail();
+  _ProgressDetail createState() => _ProgressDetail();
 }
 
-class _ReceptionDetail extends State<ReceptionDetail> {
+class _ProgressDetail extends State<ProgressDetail> {
   ReceptionListData receptionListData;
 
   @override
@@ -63,7 +63,6 @@ class _ReceptionDetail extends State<ReceptionDetail> {
   }
 
   getLocationNavi(loadAddress) async {
-    print("loadAddress : " + loadAddress);
     setState(() {
       loading = true;
     });
@@ -752,8 +751,8 @@ class _ReceptionDetail extends State<ReceptionDetail> {
                       child: Center(
                         child: Text(
                           receptionListData.deliveryType == 0
-                              ? "개별콜을 배정 요청하시겠습니까?"
-                              : "묶음콜을 배정 요청하시겠습니까?",
+                              ? "개별콜을 픽업하시겠습니까?"
+                              : "묶음콜을 픽업하시겠습니까?",
                           style: TextStyle(
                               color: white,
                               fontSize: 20,

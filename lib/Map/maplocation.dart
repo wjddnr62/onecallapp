@@ -38,6 +38,7 @@ class _MapLocation extends State<MapLocation> {
   GoogleMapController _controller;
   final Set<Marker> markers = {};
   final Set<Polyline> polylines = {};
+  String address = "";
 
 //  distance() {
   // 거리 계산 메소드 이용
@@ -57,7 +58,8 @@ class _MapLocation extends State<MapLocation> {
 //  }
 
   polylineAdd(LatLng latLng, LatLng latLng2) {
-    final PolylineId polylineId = PolylineId("1");
+//    latLngs.clear();
+    final PolylineId polylineId = PolylineId(latLng2.toString());
     latLngs..add(latLng)..add(latLng2);
 
     setState(() {
@@ -69,28 +71,43 @@ class _MapLocation extends State<MapLocation> {
         color: Colors.redAccent,
       ));
     });
+
+    print("polylines : " + polylines.length.toString());
   }
 
-  markerAdd(LatLng latLng, LatLng latLng2) {
-//    if (type == 0) {
-//
-//    } else if (type == 1) {
-//
-//    } else if (type == 3) {
-//
-//    }
-    final MarkerId markerId = MarkerId("1");
+  markerAdd(LatLng latLng, LatLng latLng2, type, query) {
+    if (type == 3) {
+      final MarkerId markerId = MarkerId(latLng2.toString());
 
-    setState(() {
-      markers.add(Marker(
-        markerId: markerId,
-        position: latLng2,
-        infoWindow: InfoWindow(
-          title:
-              "${calculateDistance(latLng.latitude, latLng.longitude, latLng2.latitude, latLng2.longitude).toStringAsFixed(1)}km",
-        ),
-      ));
-    });
+      setState(() {
+        markers.add(Marker(
+          markerId: markerId,
+          position: latLng2,
+          onTap: () {
+            setState(() {
+              address = query;
+            });
+          },
+          infoWindow: InfoWindow(
+            title:
+                "${calculateDistance(latLng.latitude, latLng.longitude, latLng2.latitude, latLng2.longitude).toStringAsFixed(1)}km",
+          ),
+        ));
+      });
+    } else {
+      final MarkerId markerId = MarkerId(latLng2.toString());
+
+      setState(() {
+        markers.add(Marker(
+          markerId: markerId,
+          position: latLng2,
+          infoWindow: InfoWindow(
+            title:
+                "${calculateDistance(latLng.latitude, latLng.longitude, latLng2.latitude, latLng2.longitude).toStringAsFixed(1)}km",
+          ),
+        ));
+      });
+    }
   }
 
   getLocation() async {
@@ -102,7 +119,9 @@ class _MapLocation extends State<MapLocation> {
             markerAdd(
                 _latLng,
                 LatLng(value.first.coordinates.latitude,
-                    value.first.coordinates.longitude));
+                    value.first.coordinates.longitude),
+                0,
+                "");
             polylineAdd(
                 _latLng,
                 LatLng(value.first.coordinates.latitude,
@@ -114,13 +133,33 @@ class _MapLocation extends State<MapLocation> {
             markerAdd(
                 _latLng,
                 LatLng(value.first.coordinates.latitude,
-                    value.first.coordinates.longitude));
+                    value.first.coordinates.longitude),
+                1,
+                "");
             polylineAdd(
                 _latLng,
                 LatLng(value.first.coordinates.latitude,
                     value.first.coordinates.longitude));
           });
-        } else if (type == 3) {}
+        } else if (type == 3) {
+          print("3 : " + widget.loadAddressList.length.toString());
+          for (int i = 0; i < widget.loadAddressList.length; i++) {
+            final query = widget.loadAddressList[i];
+            print("query : " + query);
+            await Geocoder.local.findAddressesFromQuery(query).then((value) {
+              markerAdd(
+                  _latLng,
+                  LatLng(value.first.coordinates.latitude,
+                      value.first.coordinates.longitude),
+                  3,
+                  query);
+              polylineAdd(
+                  _latLng,
+                  LatLng(value.first.coordinates.latitude,
+                      value.first.coordinates.longitude));
+            });
+          }
+        }
 //        var address =
 //            await Geocoder.local.findAddressesFromQuery(widget.loadAddress);
       });
@@ -181,8 +220,7 @@ class _MapLocation extends State<MapLocation> {
             zoomGesturesEnabled: true,
             markers: markers,
             polylines: polylines,
-            onMapCreated:
-                (GoogleMapController controller) {
+            onMapCreated: (GoogleMapController controller) {
               _controller = controller;
             },
           ),
@@ -192,9 +230,10 @@ class _MapLocation extends State<MapLocation> {
           color: Color.fromRGBO(0, 0, 0, 0.5),
           padding: EdgeInsets.all(5),
           child: Text(
-            type == 0 ? widget.mainLoadAddress : type == 1 ? widget.loadAddress : "", style: TextStyle(
-              color: Colors.yellowAccent
-          ),
+            type == 0
+                ? widget.mainLoadAddress
+                : type == 1 ? widget.loadAddress : address,
+            style: TextStyle(color: Colors.yellowAccent),
           ),
         )
       ],
@@ -214,7 +253,7 @@ class _MapLocation extends State<MapLocation> {
             resizeToAvoidBottomInset: true,
             floatingActionButton: FloatingActionButton(
               onPressed: _currentLocation,
-            child: Icon(Icons.gps_fixed),
+              child: Icon(Icons.gps_fixed),
             ),
             body: Container(
               width: MediaQuery.of(context).size.width,
@@ -242,7 +281,8 @@ class _MapLocation extends State<MapLocation> {
                               Expanded(
                                 child: Padding(
                                   padding: EdgeInsets.only(
-                                      left: 5,),
+                                    left: 5,
+                                  ),
                                   child: Container(
                                     width: MediaQuery.of(context).size.width,
                                     height: MediaQuery.of(context).size.height,
@@ -318,7 +358,7 @@ class _MapLocation extends State<MapLocation> {
                             ? googleMap()
                             : type == 1
                                 ? googleMap()
-                                : type == 3 ? Container() : Container()
+                                : type == 3 ? googleMap() : Container()
                       ],
                     ),
             )),

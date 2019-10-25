@@ -1,17 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+import 'package:onecallapp/CompleteList/completelist.dart';
+import 'package:onecallapp/Map/maplocation.dart';
+import 'package:onecallapp/ProgressList/progresslist.dart';
 import 'package:onecallapp/ReceptionList/receptionlist.dart';
+import 'package:onecallapp/Setting/settings.dart';
 import 'package:onecallapp/Utils/color.dart';
 import 'package:intl/intl.dart';
+import 'package:onecallapp/Utils/dataRoutes.dart';
 import 'package:onecallapp/Utils/numberFormat.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Home extends StatefulWidget {
   @override
   _Home createState() => _Home();
 }
 
+class RadioGroup {
+  String text;
+  int idx;
+
+  RadioGroup({this.text, this.idx});
+}
+
 class _Home extends State<Home> {
   int selectTabId = 0;
   int money = 150000;
+
+  DataRoutes _dataRoutes = DataRoutes();
+
+  Map<PermissionGroup, PermissionStatus> permissions;
+
+  Future<bool> permissionCheck() async {
+    permissions = await PermissionHandler()
+        .requestPermissions([PermissionGroup.location]);
+    PermissionStatus permission = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.location);
+
+    print("check: " + permission.toString());
+    bool pass = false;
+
+    if (permission == PermissionStatus.granted) {
+      pass = true;
+    }
+
+    return pass;
+  }
+
+
+  var location = Location();
+
+  Future<LatLng> getLocation() async {
+    LatLng latLng;
+
+    await location.getLocation().then((value) {
+      latLng = LatLng(value.latitude, value.longitude);
+    });
+
+    return latLng;
+  }
+
+
+  // type = 0 (기사위치 -> 상점위치), type = 1 (기사위치 -> 도착위치), type = 2 (웹뷰 다음맵 길찾기 연결), type = 3 (현재 기사위치 -> 상점위치, 고객위치)
+  mapViewMove(
+      type, mainLoadAddress, loadAddress, List<String> loadAddressList) async {
+    permissionCheck().then((pass) {
+      if (pass == true) {
+        if (type == 3) {
+          getLocation().then((value) {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => MapLocation(
+                  type: 3,
+                  loadAddressList: loadAddressList,
+                  latLng: value,
+                )));
+          });
+        }
+      } else {
+        print("error");
+      }
+    });
+  }
 
   nonSelectTab(text) {
     return Expanded(
@@ -178,10 +248,22 @@ class _Home extends State<Home> {
                   child: Center(
                     child: GestureDetector(
                       onTap: () {
-                        curretStatusSet();
+                        List<String> loadAddressList = List();
+                        print("chekc : " + _dataRoutes.saveData.length.toString());
+                        for (int i = 0; i < _dataRoutes.saveData.length; i++) {
+                          if(_dataRoutes.saveData[i].deliveryType == 0) {
+                            loadAddressList.add(_dataRoutes.saveData[i].loadAddress);
+                          } else {
+                            for (int j = 0; j < _dataRoutes.saveData[i].loadAddress.length; j++) {
+                              loadAddressList.add(_dataRoutes.saveData[i].loadAddress[j]);
+                            }
+                          }
+                        }
+
+                        selectTabId == 1 ? mapViewMove(3, "", "", loadAddressList) : curretStatusSet();
                       },
                       child: Icon(
-                        Icons.drag_handle,
+                        selectTabId == 1 ? Icons.location_on : Icons.drag_handle,
                         color: white,
                       ),
                     ),
@@ -218,7 +300,11 @@ class _Home extends State<Home> {
                   width: MediaQuery.of(context).size.width,
                   child: Center(
                     child: GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        setState(() {
+                          selectTabId = 3;
+                        });
+                      },
                       child: Text(
                         "설정",
                         style: TextStyle(
@@ -237,13 +323,13 @@ class _Home extends State<Home> {
       body: SingleChildScrollView(
         child: Container(
           width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height - 100,
-          padding: EdgeInsets.only(top: 10, bottom: 30),
+          height: MediaQuery.of(context).size.height - (selectTabId == 3 ? 120 : 100),
+          padding: EdgeInsets.only(top: 10, bottom: selectTabId == 3 ? 10 : 30),
           child: selectTabId == 0
               ? ReceptionList()
               : selectTabId == 1
-                  ? Container()
-                  : selectTabId == 2 ? Container() : Container(),
+                  ? ProgressList()
+                  : selectTabId == 2 ? CompleteList() : selectTabId == 3 ? Settings() : Container(),
         ),
       ),
     );

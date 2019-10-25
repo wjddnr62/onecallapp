@@ -11,23 +11,39 @@ import 'package:onecallapp/Utils/whiteSpace.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ReceptionDetail extends StatefulWidget {
+class CompleteDetail extends StatefulWidget {
   ReceptionListData receptionListData;
 
-  ReceptionDetail({Key key, this.receptionListData}) : super(key: key);
+  CompleteDetail({Key key, this.receptionListData}) : super(key: key);
 
   @override
-  _ReceptionDetail createState() => _ReceptionDetail();
+  _CompleteDetail createState() => _CompleteDetail();
 }
 
-class _ReceptionDetail extends State<ReceptionDetail> {
+class _CompleteDetail extends State<CompleteDetail> {
   ReceptionListData receptionListData;
+  bool checkFinish = false;
 
   @override
   void initState() {
     super.initState();
 
     receptionListData = widget.receptionListData;
+
+    if (receptionListData.deliveryType == 0) {
+      if (receptionListData.check == 1) {
+        checkFinish = true;
+      }
+    } else {
+      for (int i = 0; i < receptionListData.check.length; i++) {
+        if (receptionListData.check[i] == 0) {
+          checkFinish = false;
+          break;
+        } else {
+          checkFinish = true;
+        }
+      }
+    }
   }
 
   Map<PermissionGroup, PermissionStatus> permissions;
@@ -62,14 +78,45 @@ class _ReceptionDetail extends State<ReceptionDetail> {
     return latLng;
   }
 
+  paymentType(type) {
+    return Padding(
+      padding: EdgeInsets.only(right: 5),
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            boxShadow: [
+              BoxShadow(
+                  color: Color.fromARGB(255, 219, 219, 219), blurRadius: 2)
+            ],
+            color: type == 0
+                ? Colors.greenAccent
+                : type == 1
+                    ? Colors.indigo
+                    : type == 2
+                        ? Colors.redAccent
+                        : type == 3 ? Colors.deepPurple : Colors.transparent),
+        padding: EdgeInsets.all(5),
+        child: Center(
+          child: Text(
+            type == 0
+                ? "카드"
+                : type == 1 ? "완불" : type == 2 ? "현금" : type == 3 ? "이체" : "",
+            style: TextStyle(color: black),
+          ),
+        ),
+      ),
+    );
+  }
+
   getLocationNavi(loadAddress) async {
-    print("loadAddress : " + loadAddress);
     setState(() {
       loading = true;
     });
     try {
       await location.getLocation().then((value) async {
-        var address = await Geocoder.local.findAddressesFromQuery(loadAddress).catchError((error) {
+        var address = await Geocoder.local
+            .findAddressesFromQuery(loadAddress)
+            .catchError((error) {
           print("geoError : " + error.toString());
           setState(() {
             loading = false;
@@ -105,19 +152,19 @@ class _ReceptionDetail extends State<ReceptionDetail> {
             print("check 1");
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => MapLocation(
-                  type: 0,
-                  mainLoadAddress: mainLoadAddress,
-                  latLng: value,
-                )));
+                      type: 0,
+                      mainLoadAddress: mainLoadAddress,
+                      latLng: value,
+                    )));
           });
         } else if (type == 1) {
           getLocation().then((value) {
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) => MapLocation(
-                  type: 1,
-                  loadAddress: loadAddress,
-                  latLng: value,
-                )));
+                      type: 1,
+                      loadAddress: loadAddress,
+                      latLng: value,
+                    )));
           });
         } else if (type == 2) {
 //          Navigator.of(context).push(MaterialPageRoute(builder: (context) => MapLocation(
@@ -127,7 +174,7 @@ class _ReceptionDetail extends State<ReceptionDetail> {
         } else if (type == 3) {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => MapLocation(
-                type: 3,
+                    type: 3,
                     loadAddressList: loadAddressList,
                   )));
         }
@@ -159,12 +206,24 @@ class _ReceptionDetail extends State<ReceptionDetail> {
                   ? Colors.green
                   : type == 1
                       ? Colors.deepOrangeAccent
-                      : type == 2 ? Colors.blueAccent : Colors.transparent),
+                      : type == 2
+                          ? Colors.blueAccent
+                          : type == 3
+                              ? black
+                              : type == 4 ? Colors.green : Colors.transparent),
           child: Center(
             child: Text(
-              type == 0 ? "상점 위치" : type == 1 ? "도착 위치" : type == 2 ? "네비" : "",
+              type == 0
+                  ? "상점 위치"
+                  : type == 1
+                      ? "도착 위치"
+                      : type == 2
+                          ? "네비"
+                          : type == 3 ? "카드결제" : type == 4 ? "카드" : "",
               style: TextStyle(
-                  color: black, fontSize: 16, fontWeight: FontWeight.bold),
+                  color: type == 3 ? white : black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -551,171 +610,232 @@ class _ReceptionDetail extends State<ReceptionDetail> {
           color: white,
         ),
         Container(
-          width: MediaQuery.of(context).size.width,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          child: Stack(
             children: <Widget>[
-              Expanded(
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: 75,
-                  padding: EdgeInsets.only(top: 5, left: 5),
-                  color: greyW,
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      "목적지",
-                      style: TextStyle(color: black, fontSize: 20),
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                width: 1,
-                color: white,
-              ),
-              Expanded(
-                flex: 3,
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: 75,
-                  padding: EdgeInsets.only(left: 5),
-                  color: black,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          data.deliveryType == 0
-                              ? data.numberAddress
-                              : data.numberAddress[id],
-                          style: TextStyle(color: white, fontSize: 20),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          data.deliveryType == 0
-                              ? "(${data.loadAddress})"
-                              : "(${data.loadAddress[id]})",
-                          style: TextStyle(fontSize: 20, color: white),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Row(
-                            children: <Widget>[
-                              Container(
-                                width: 20,
-                                height: 20,
-                                color: white,
+              Column(
+                children: <Widget>[
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Expanded(
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: 75,
+                            padding: EdgeInsets.only(top: 5, left: 5),
+                            color: greyW,
+                            child: Align(
+                              alignment: Alignment.topLeft,
+                              child: Text(
+                                "목적지",
+                                style: TextStyle(color: black, fontSize: 20),
                               ),
-                              whiteSpaceW(5),
-                              Text(
-                                data.deliveryType == 0
-                                    ? data.customerPhone
-                                    : data.customerPhone[id],
-                                style: TextStyle(color: white, fontSize: 20),
-                              )
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-        Container(
-          width: MediaQuery.of(context).size.width,
-          height: 1,
-          color: white,
-        ),
-        Container(
-          width: MediaQuery.of(context).size.width,
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  height: 30,
-                  width: MediaQuery.of(context).size.width,
-                  padding: EdgeInsets.only(top: 5, left: 5),
-                  color: greyW,
-                  child: Text(
-                    "결제금액",
-                    style: TextStyle(color: black, fontSize: 20),
-                  ),
-                ),
-              ),
-              Container(
-                width: 1,
-                color: white,
-              ),
-              Expanded(
-                flex: 3,
-                child: Container(
-                  height: 30,
-                  width: MediaQuery.of(context).size.width,
-                  color: black,
-                  padding: EdgeInsets.only(left: 5),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      data.deliveryType == 0
-                          ? "${numberFormat.format(data.paymentAmount)}원"
-                          : "${numberFormat.format(data.paymentAmount[id])}원",
-                      style: TextStyle(color: white, fontSize: 20),
+                        Container(
+                          width: 1,
+                          color: white,
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: 75,
+                            padding: EdgeInsets.only(left: 5),
+                            color: black,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(
+                                    data.deliveryType == 0
+                                        ? data.numberAddress
+                                        : data.numberAddress[id],
+                                    style:
+                                        TextStyle(color: white, fontSize: 20),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    data.deliveryType == 0
+                                        ? "(${data.loadAddress})"
+                                        : "(${data.loadAddress[id]})",
+                                    style:
+                                        TextStyle(fontSize: 20, color: white),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {},
+                                    child: Row(
+                                      children: <Widget>[
+                                        Container(
+                                          width: 20,
+                                          height: 20,
+                                          color: white,
+                                        ),
+                                        whiteSpaceW(5),
+                                        Text(
+                                          data.deliveryType == 0
+                                              ? data.customerPhone
+                                              : data.customerPhone[id],
+                                          style: TextStyle(
+                                              color: white, fontSize: 20),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                ),
-              )
-            ],
-          ),
-        ),
-        Container(
-          width: MediaQuery.of(context).size.width,
-          height: 1,
-          color: white,
-        ),
-        Container(
-          width: MediaQuery.of(context).size.width,
-          height: 30,
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: 30,
-                  color: greyW,
-                  child: Text(
-                    "대행금액",
-                    style: TextStyle(color: black, fontSize: 20),
-                  ),
-                ),
-              ),
-              Container(
-                width: 1,
-                color: white,
-              ),
-              Expanded(
-                flex: 3,
-                child: Container(
+                  Container(
                     width: MediaQuery.of(context).size.width,
-                    color: black,
-                    padding: EdgeInsets.only(left: 5),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        data.deliveryType == 0
-                            ? "${numberFormat.format(data.deliveryAmount)}원"
-                            : "${numberFormat.format(data.deliveryAmount[id])}원",
-                        style: TextStyle(fontSize: 20, color: white),
-                      ),
-                    )),
-              )
+                    height: 1,
+                    color: white,
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Container(
+                            height: 30,
+                            width: MediaQuery.of(context).size.width,
+                            padding: EdgeInsets.only(top: 5, left: 5),
+                            color: greyW,
+                            child: Text(
+                              "결제금액",
+                              style: TextStyle(color: black, fontSize: 20),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          color: white,
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                              height: 30,
+                              width: MediaQuery.of(context).size.width,
+                              color: black,
+                              padding: EdgeInsets.only(left: 5),
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Text(
+                                      data.deliveryType == 0
+                                          ? "${numberFormat.format(data.paymentAmount)}원"
+                                          : "${numberFormat.format(data.paymentAmount[id])}원",
+                                      style:
+                                          TextStyle(color: white, fontSize: 20),
+                                    ),
+                                  ),
+                                  data.paymentType[id] == 0 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(0)
+                                      : Container(),
+                                  data.paymentType[id] == 0 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(2)
+                                      : Container(),
+                                  data.paymentType[id] == 1 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(1)
+                                      : Container(),
+                                  data.paymentType[id] == 1 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(2)
+                                      : Container(),
+                                  data.paymentType[id] == 1 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(0)
+                                      : Container(),
+                                  data.paymentType[id] == 2 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(2)
+                                      : Container(),
+                                  data.paymentType[id] == 2 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(0)
+                                      : Container(),
+                                  data.paymentType[id] == 3 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(3)
+                                      : Container(),
+                                  data.paymentType[id] == 3 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(0)
+                                      : Container(),
+                                  data.paymentType[id] == 3 &&
+                                          data.deliveryType == 1
+                                      ? paymentType(2)
+                                      : Container(),
+                                ],
+                              )),
+                        )
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 1,
+                    color: white,
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 30,
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: 30,
+                            color: greyW,
+                            child: Text(
+                              "대행금액",
+                              style: TextStyle(color: black, fontSize: 20),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          color: white,
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              color: black,
+                              padding: EdgeInsets.only(left: 5),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  data.deliveryType == 0
+                                      ? "${numberFormat.format(data.deliveryAmount)}원"
+                                      : "${numberFormat.format(data.deliveryAmount[id])}원",
+                                  style: TextStyle(fontSize: 20, color: white),
+                                ),
+                              )),
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              data.check[id] == 1 ? Positioned.fill(
+                  child: Container(
+                width: MediaQuery.of(context).size.width,
+                color: Colors.white60,
+              )) : Container()
             ],
           ),
         ),
@@ -751,9 +871,7 @@ class _ReceptionDetail extends State<ReceptionDetail> {
                           : Colors.blueAccent,
                       child: Center(
                         child: Text(
-                          receptionListData.deliveryType == 0
-                              ? "개별콜을 배정 요청하시겠습니까?"
-                              : "묶음콜을 배정 요청하시겠습니까?",
+                          checkFinish ? "완료가 되었습니다." : "완료 확인 되었습니까?",
                           style: TextStyle(
                               color: white,
                               fontSize: 20,
@@ -795,7 +913,9 @@ class _ReceptionDetail extends State<ReceptionDetail> {
                                     onPressed: () {
                                       print("예");
                                     },
-                                    color: Colors.blueAccent,
+                                    color: checkFinish
+                                        ? Colors.grey
+                                        : Colors.blueAccent,
                                     shape: RoundedRectangleBorder(
                                         borderRadius:
                                             BorderRadius.circular(10)),
@@ -881,29 +1001,43 @@ class _ReceptionDetail extends State<ReceptionDetail> {
                       right: 5,
                       bottom: 30,
                       child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Row(
-                          children: <Widget>[
-                            locationButton(
-                                0, receptionListData.mainLoadAddress, ""),
-                            whiteSpaceW(15),
-                            locationButton(
-                                1, "", receptionListData.loadAddress),
-                            whiteSpaceW(15),
-                            locationButton(2, "", receptionListData.loadAddress)
-                          ],
-                        ),
-                      ))
+                          alignment: Alignment.bottomCenter,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  locationButton(3, "", ""),
+                                  whiteSpaceW(15),
+                                  locationButton(4, "", ""),
+                                ],
+                              ),
+                              whiteSpaceH(10),
+                              Row(
+                                children: <Widget>[
+                                  locationButton(
+                                      0, receptionListData.mainLoadAddress, ""),
+                                  whiteSpaceW(15),
+                                  locationButton(
+                                      1, "", receptionListData.loadAddress),
+                                  whiteSpaceW(15),
+                                  locationButton(
+                                      2, "", receptionListData.loadAddress)
+                                ],
+                              ),
+                            ],
+                          )))
                   : Container(),
-              loading == true ? Positioned.fill(
-                  child:Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  color: Color.fromRGBO(0, 0, 0, 0.5),
-                  child:  Center(
-                    child: CircularProgressIndicator(),
-                  )
-                )) : Container()
+              loading == true
+                  ? Positioned.fill(
+                      child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                          color: Color.fromRGBO(0, 0, 0, 0.5),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          )))
+                  : Container()
             ],
           ),
         ),

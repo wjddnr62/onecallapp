@@ -4,16 +4,17 @@ import 'package:intl/intl.dart';
 import 'package:onecallapp/Model/receptionListData.dart';
 import 'package:onecallapp/ReceptionList/receptiondetail.dart';
 import 'package:onecallapp/Utils/color.dart';
-import 'package:onecallapp/Utils/dataRoutes.dart';
 import 'package:onecallapp/Utils/numberFormat.dart';
 import 'package:onecallapp/Utils/whiteSpace.dart';
 
-class ReceptionList extends StatefulWidget {
+import 'completedetail.dart';
+
+class CompleteList extends StatefulWidget {
   @override
-  _ReceptionList createState() => _ReceptionList();
+  _CompleteList createState() => _CompleteList();
 }
 
-class _ReceptionList extends State<ReceptionList> {
+class _CompleteList extends State<CompleteList> {
   List<ReceptionListData> _receptionData = List();
 
   List<String> testNumberAddress = List();
@@ -22,10 +23,9 @@ class _ReceptionList extends State<ReceptionList> {
   List<int> testPaymentAmount = List();
   List<int> testDeliveryAmount = List();
   List<int> testPaymentType = List();
+  List<int> testCheck = List();
   int testAllPaymentAmount = 0;
   int testAllDeliveryAmount = 0;
-
-  DataRoutes _dataRoutes = DataRoutes();
 
   @override
   void initState() {
@@ -57,6 +57,7 @@ class _ReceptionList extends State<ReceptionList> {
       ..add(21500);
     testDeliveryAmount..add(3100)..add(3200)..add(3100)..add(3200)..add(3200);
     testPaymentType..add(0)..add(2)..add(1)..add(3)..add(2);
+    testCheck..add(1)..add(1)..add(1)..add(1)..add(0);
 
     for (int i = 0; i < testPaymentAmount.length; i++) {
       testAllPaymentAmount += testPaymentAmount[i];
@@ -84,7 +85,8 @@ class _ReceptionList extends State<ReceptionList> {
           paymentAmount: 25000,
           deliveryType: 0,
           deliveryAmount: 3500,
-          paymentType: 0))
+          paymentType: 0,
+      check: 0))
       ..add(ReceptionListData(
           assignmentTime: 20,
           receptionTime: 10,
@@ -100,7 +102,8 @@ class _ReceptionList extends State<ReceptionList> {
           paymentAmount: 17000,
           deliveryType: 0,
           deliveryAmount: 3200,
-          paymentType: 0))
+          paymentType: 0,
+      check: 1))
       ..add(ReceptionListData(
           assignmentTime: 20,
           receptionTime: 8,
@@ -116,7 +119,8 @@ class _ReceptionList extends State<ReceptionList> {
           paymentAmount: testPaymentAmount,
           deliveryType: 1,
           deliveryAmount: testDeliveryAmount,
-          paymentType: testPaymentType))
+          paymentType: testPaymentType,
+      check: testCheck))
       ..add(ReceptionListData(
           assignmentTime: 20,
           receptionTime: 2,
@@ -132,7 +136,8 @@ class _ReceptionList extends State<ReceptionList> {
           paymentAmount: 17000,
           deliveryType: 0,
           deliveryAmount: 3200,
-          paymentType: 0))
+          paymentType: 0,
+      check: 1))
       ..add(ReceptionListData(
           assignmentTime: 20,
           receptionTime: 14,
@@ -148,14 +153,15 @@ class _ReceptionList extends State<ReceptionList> {
           paymentAmount: 19000,
           deliveryType: 0,
           deliveryAmount: 3300,
-          paymentType: 0))
+          paymentType: 0,
+      check: 1))
       ..add(ReceptionListData(
           assignmentTime: 20,
           receptionTime: 14,
           businessName: "(공유주방) 국민닭발",
           customerPhone: "010-1234-5678",
           numberAddress: "신흥동 2572",
-          loadAddress: "가산디지털 1로 79",
+          loadAddress: "산성대로269번길 10",
           mainTel: "031-123-4567",
           mainPhone: "010-1234-5678",
           mainNumberAddress: "신흥동 2572",
@@ -164,9 +170,8 @@ class _ReceptionList extends State<ReceptionList> {
           paymentAmount: 19000,
           deliveryType: 0,
           deliveryAmount: 3300,
-          paymentType: 0));
-
-    _dataRoutes.saveData = _receptionData;
+          paymentType: 0,
+      check: 1));
   }
 
   @override
@@ -177,7 +182,7 @@ class _ReceptionList extends State<ReceptionList> {
         return GestureDetector(
           onTap: () {
             Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => ReceptionDetail(
+              builder: (context) => CompleteDetail(
                 receptionListData: _receptionData[idx],
               )
             ));
@@ -193,8 +198,8 @@ class _ReceptionList extends State<ReceptionList> {
                         Container(
                           height: 40,
                           color: _receptionData[idx].deliveryType == 0
-                              ? black
-                              : Colors.blueAccent,
+                              ? Colors.blueAccent
+                              : Colors.deepOrangeAccent,
                           child: Center(
                             child: Text(
                               _receptionData[idx].receptionTime.toString(),
@@ -212,8 +217,8 @@ class _ReceptionList extends State<ReceptionList> {
                         Container(
                           height: 40,
                           color: _receptionData[idx].deliveryType == 0
-                              ? greyB
-                              : Colors.blueAccent,
+                              ? Colors.blueAccent
+                              : Colors.deepOrangeAccent,
                           child: Center(
                             child: Text(
                               _receptionData[idx].assignmentTime.toString(),
@@ -237,8 +242,8 @@ class _ReceptionList extends State<ReceptionList> {
                     child: Container(
                       height: 80,
                       color: _receptionData[idx].deliveryType == 0
-                          ? black
-                          : Colors.blueAccent,
+                          ? Colors.blueAccent
+                          : Colors.deepOrangeAccent,
                       child: Padding(
                         padding: EdgeInsets.only(left: 5),
                         child: Column(
@@ -269,7 +274,7 @@ class _ReceptionList extends State<ReceptionList> {
                                   " 외 ${_receptionData[idx].numberAddress.length - 1}건",
                                   style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.redAccent,
+                                      color: white,
                                       fontWeight: FontWeight.bold),
                                 )
                                     : Container()
@@ -304,8 +309,8 @@ class _ReceptionList extends State<ReceptionList> {
                     child: Container(
                       height: 80,
                       color: _receptionData[idx].deliveryType == 0
-                          ? black
-                          : Colors.blueAccent,
+                          ? Colors.blueAccent
+                          : Colors.deepOrangeAccent,
                       child: Padding(
                         padding: EdgeInsets.only(
                             top: 5, bottom: 5, left: 10, right: 10),
@@ -353,7 +358,7 @@ class _ReceptionList extends State<ReceptionList> {
               Container(
                 width: MediaQuery.of(context).size.width,
                 height: 30,
-                color: greyB,
+                color: _receptionData[idx].deliveryType == 0 ? Colors.blueAccent : Colors.deepOrangeAccent,
                 child: Stack(
                   children: <Widget>[
                     _receptionData[idx].deliveryType == 0
@@ -374,7 +379,7 @@ class _ReceptionList extends State<ReceptionList> {
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.redAccent),
+                                color: white),
                           ),
                         )),
                     Positioned.fill(
@@ -388,7 +393,7 @@ class _ReceptionList extends State<ReceptionList> {
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
-                                color: Colors.redAccent),
+                                color: _receptionData[idx].deliveryType == 0 ? Colors.redAccent : white),
                           ),
                         ))
                   ],
